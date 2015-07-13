@@ -55,3 +55,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+
+# Google API stuff
+client_secret.json
