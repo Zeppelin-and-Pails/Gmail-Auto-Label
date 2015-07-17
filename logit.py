@@ -1,11 +1,11 @@
 """
-gmail-auto-label start
+logit
 
-automatically generates labels for use in gmail,
-based on either sender address, or recipient address (use with catch all addresses)
+A customer loging library that serves mostly as a thin wrapper for logging
+allows customisation via config
 
 @category   Utility
-@version    $ID: 1.1.1, 2015-07-01 17:00:00 CST $;
+@version    $ID: 1.1.1, 2015-07-17 17:00:00 CST $;
 @author     KMR
 @licence    GNU GPL v.3
 """
@@ -13,9 +13,12 @@ based on either sender address, or recipient address (use with catch all address
 import logging
 
 class logit:
+    """
+    logit class, extends logging will the option to send all logging to the cli
+    """
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    maxLvl = None
+    max_lvl = None
     handler = None
 
     levels = {
@@ -27,7 +30,11 @@ class logit:
              }
 
     def __init__(self, conf):
-        self.maxLvl = conf['DEBUG']
+        """ Initialise a new logit
+        :param conf: the config object
+        :return logit: a new instance of a logit
+        """
+        self.max_lvl = conf['DEBUG']
         if conf['DEBUG'] == 'Caveman':
             print 'Caveman debug selected, printing everything'
         else:
@@ -46,11 +53,14 @@ class logit:
             self.logger.info('Logit initialised')
 
     def __getattr__(self, name):
+        """ Generalised function call, covers all methods
+        :param name: the name of the function being called
+        """
         def wrapper(*args, **kwargs):
-            if self.maxLvl == 'Caveman':
+            if self.max_lvl == 'Caveman':
                 print args[0]
             else:
-                methodToCall = getattr(self.logger, name)
-                methodToCall(args[0])
+                method_to_call = getattr(self.logger, name)
+                method_to_call(args[0])
 
         return wrapper

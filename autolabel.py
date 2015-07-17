@@ -1,11 +1,11 @@
 """
-gmail-auto-label start
+autolabel
 
 automatically generates labels for use in gmail,
 based on either sender address, or recipient address (use with catch all addresses)
 
 @category   Utility
-@version    $ID: 1.1.1, 2015-07-01 17:00:00 CST $;
+@version    $ID: 1.1.1, 2015-07-17 17:00:00 CST $;
 @author     KMR
 @licence    GNU GPL v.3
 """
@@ -16,15 +16,29 @@ import logit
 import gmailconnector
 
 class autolabel:
+    """
+    autolabel class,
+        connects to GMail and automatically labels all emails in the INBOX
+    """
     log = None
 
     def __init__(self):
+        """ Initialise a new autolabel
+        :return autolabel: a new instance of a autolabel
+        """
         DIR = os.path.dirname(os.path.realpath(__file__))
         self.conf = yaml.safe_load(open("{}/autolabel.cfg".format(DIR)))
         self.log = logit.logit(self.conf)
         self.log.info('autolabel initialised')
 
     def run(self):
+        """ Run through the autolabeling process
+                Get all existing labels
+                Get all email in the INBOX
+                Put emails into appropriate labels,
+                    creating new labels where needed
+        :return: the results of the run
+        """
         self.log.info('autolabel::run called')
         con = gmailconnector.gmailconnector()
 
@@ -58,8 +72,8 @@ class autolabel:
                         if label not in labels:
                             print label
                             try:
-                                con.add_label(label)
-                                labels.append(label)
+                                new_label = con.add_label(label)
+                                labels[new_label['name']] = new_label['id']
                             except:
                                 bad += 1
                                 pass
