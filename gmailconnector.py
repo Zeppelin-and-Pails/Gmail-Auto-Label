@@ -11,7 +11,6 @@ A package for communicating with the GMail APIs
 
 import os
 import yaml
-import logit
 import httplib2
 import emailer
 
@@ -30,13 +29,13 @@ class gmailconnector:
     conf = None
     log = None
 
-    def __init__(self):
+    def __init__(self, log):
         """ Initialise a new gmailconnector
         :return gmailconnector: a new instance of a gmailconnector
         """
         DIR = os.path.dirname(os.path.realpath(__file__))
         self.conf = yaml.safe_load(open("{}/gmailconnector.cfg".format(DIR)))
-        self.log = logit.logit(self.conf)
+        self.log = log
         self.log.info('gmailconnector initialised')
 
     def get_scopes(self):
@@ -53,7 +52,7 @@ class gmailconnector:
         :return:
             A Resource object with methods for interacting with the service.
         """
-        self.log.info('get_service called')
+        self.log.info('gmailconnector::get_service called')
         credentials = self.get_credentials(reauth)
         http = credentials.authorize(httplib2.Http())
         return discovery.build('gmail', 'v1', http=http)
@@ -62,7 +61,7 @@ class gmailconnector:
         """ Get the URL from google for authorising this app
         :return string: the authorisation url for redirection
         """
-        self.log.info('get_auth_url called')
+        self.log.info('gmailconnector::get_auth_url called')
         callback_path = '{}/oauth2callback'.format(self.conf['AUTH_URL'])
         flow = client.flow_from_clientsecrets(self.conf['CS_FILE'],
                                               ' '.join(self.get_scopes()),
@@ -75,7 +74,7 @@ class gmailconnector:
         :return oauth2client.file.Storage:
                     a new instance of Storage for access the stored credentials
         """
-        self.log.info('get_cred_store called')
+        self.log.info('gmailconnector::get_cred_store called')
         credential_dir = os.path.join(self.conf['CRED_DIR'])
         if not os.path.exists(credential_dir):
             os.makedirs(credential_dir)
@@ -88,7 +87,7 @@ class gmailconnector:
                             if False stored details will be used where possible
         :return: Credentials for use in GMail API connections
         """
-        self.log.info('get_credentials called')
+        self.log.info('gmailconnector::get_credentials called')
         store = self.get_cred_store()
         credentials = store.get()
         if not credentials \
@@ -104,6 +103,7 @@ class gmailconnector:
             except errors.HttpError, error:
                 self.log.error(error)
             except PermissionError:
+                self.log.warning('Authentication failed')
                 raise
         return credentials
 
@@ -112,7 +112,7 @@ class gmailconnector:
         :param code: authorisation code to exchange for GMail credentials
         :return string: a string representation of the result
         """
-        self.log.info('set_credentials called')
+        self.log.info('gmailconnector::set_credentials called')
         callback_path = '{}/oauth2callback'.format(self.conf['AUTH_URL'])
         try:
             store = self.get_cred_store()
@@ -133,9 +133,8 @@ class gmailconnector:
         """ Get a list of labels from the GMail API
         :return: a list of label objects from the GMail API
         """
-        self.log.info('get_labels called')
+        self.log.info('gmailconnector::get_labels called')
         try:
-            self.log.info('get_labels called')
             self.log.info('Getting credentials for account, and authorising')
             service = self.get_service()
 
@@ -151,7 +150,7 @@ class gmailconnector:
                 folders can be defined using / e.g. 'folder/label'
         :return:
         """
-        self.log.info('add_label called')
+        self.log.info('gmailconnector::add_label called')
         label = {
             "name": name,
             "messageListVisibility": "show",
@@ -172,7 +171,7 @@ class gmailconnector:
         """ Get a list of the messages in the GMail account's inbox
         :return: a list of GMail message objects
         """
-        self.log.info('get_inbox_messages called')
+        self.log.info('gmailconnector::get_inbox_messages called')
         try:
             self.log.info('Getting credentials for account, and authorising')
             service = self.get_service()
@@ -203,7 +202,7 @@ class gmailconnector:
         :param msg_id: The ID for the message as provided by google
         :return: A message headers object
         """
-        self.log.info('get_message_headers called')
+        self.log.info('gmailconnector::get_message_headers called')
         try:
             service = self.get_service()
             message = service.users().messages().get(userId=self.UID,
@@ -219,7 +218,7 @@ class gmailconnector:
         :param msg_id: The ID for the message as provided by google
         :return: the appropriate address string e.g. 'ap <aperson@gmail.com>'
         """
-        self.log.info('get_address called')
+        self.log.info('gmailconnector::get_address called')
         try:
             headers = self.get_message_headers(msg_id)
         except errors.HttpError, error:
@@ -234,6 +233,7 @@ class gmailconnector:
         :param msg_id: The ID for the message as provided by google
         :param label: The ID for the label to move the message to
         """
+        self.log.info('gmailconnector::move_msg_to_label called')
         msg_labels = {'removeLabelIds': ['INBOX'],
                       'addLabelIds': [label]}
 

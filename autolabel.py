@@ -31,6 +31,13 @@ class autolabel:
         self.log = logit.logit(self.conf)
         self.log.info('autolabel initialised')
 
+    def get_gmailcon(self):
+        """ Intialise a new gmail connector
+        :return gmailconnector: the newly initialised gmail connector
+        """
+        self.log.info('autolabel::get_gmailcon called')
+        return gmailconnector.gmailconnector(self.log)
+
     def run(self):
         """ Run through the autolabeling process
                 Get all existing labels
@@ -40,7 +47,7 @@ class autolabel:
         :return: the results of the run
         """
         self.log.info('autolabel::run called')
-        con = gmailconnector.gmailconnector()
+        con = self.get_gmailcon()
 
         labels = {}
 

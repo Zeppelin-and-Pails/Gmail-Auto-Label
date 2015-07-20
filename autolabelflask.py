@@ -11,13 +11,18 @@ REST interface for Autolabeler, starts up a autolabeler via webhooks
 @licence    GNU GPL v.3
 """
 
+import os
+import yaml
 import autolabel
 import gmailconnector
 from flask import Flask, request, jsonify, redirect
 
+
+DIR = os.path.dirname(os.path.realpath(__file__))
+conf = yaml.safe_load(open("{}/flask.cfg".format(DIR)))
 app = Flask(__name__)
 
-@app.route('/run/labeler')
+@app.route(conf['RUNCALL'])
 def labeler():
     """ Run the autolabeler, and return the results
     :return: output of the labeler run
@@ -25,7 +30,7 @@ def labeler():
     labeler = autolabel.autolabel()
     return labeler.run()
 
-@app.route('/oauth2callback')
+@app.route(conf['AUTHCALL'])
 def oauth2callback():
     """ Authenticate the app with the GMail API
     :return: results of the authentication run
@@ -39,11 +44,8 @@ def oauth2callback():
         auth_code = request.args.get('code')
         try:
             result = con.set_credentials(auth_code)
-            del con
         except:
             return 'Get credentials [Failed]'
-
-        del con
         return 'Get credentials {}'.format(result)
 
-app.run(host='localhost', port=5002)
+app.run(host=conf['HOST'], port=conf['PORT'])
