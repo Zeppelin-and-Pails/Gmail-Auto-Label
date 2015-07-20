@@ -22,12 +22,13 @@ DIR = os.path.dirname(os.path.realpath(__file__))
 conf = yaml.safe_load(open("{}/flask.cfg".format(DIR)))
 app = Flask(__name__)
 
+labeler = autolabel.autolabel()
+
 @app.route(conf['RUNCALL'])
 def labeler():
     """ Run the autolabeler, and return the results
     :return: output of the labeler run
     """
-    labeler = autolabel.autolabel()
     return labeler.run()
 
 @app.route(conf['AUTHCALL'])
@@ -35,7 +36,7 @@ def oauth2callback():
     """ Authenticate the app with the GMail API
     :return: results of the authentication run
     """
-    con = gmailconnector.gmailconnector()
+    con = labeler.get_gmailcon()
     if 'code' not in request.args:
         auth_uri = con.get_auth_url()
         del con
