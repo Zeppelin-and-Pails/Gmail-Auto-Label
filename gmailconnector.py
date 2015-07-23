@@ -53,8 +53,7 @@ class gmailconnector:
             A Resource object with methods for interacting with the service.
         """
         self.log.info('gmailconnector::get_service called')
-        credentials = self.get_credentials(reauth)
-        http = credentials.authorize(httplib2.Http())
+        http = self.get_credentials(reauth)
         return discovery.build('gmail', 'v1', http=http)
 
     def get_auth_url(self):
@@ -90,8 +89,11 @@ class gmailconnector:
         self.log.info('gmailconnector::get_credentials called')
         store = self.get_cred_store()
         credentials = store.get()
+
+        if credentials.access_token_expired:
+            return credentials.refresh(httplib2.Http())
+
         if not credentials \
-           or credentials.access_token_expired \
            or credentials.invalid \
            or reauth:
             self.log.info('Failed to find credentials, or existing credentials'
@@ -105,7 +107,7 @@ class gmailconnector:
             except PermissionError:
                 self.log.warning('Authentication failed')
                 raise
-        return credentials
+        return credentials.authorize(httplib2.Http())
 
     def set_credentials(self, code):
         """ Get a credentials object from google and store it for later use
