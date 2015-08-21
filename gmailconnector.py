@@ -87,10 +87,14 @@ class gmailconnector:
         :return: Credentials for use in GMail API connections
         """
         self.log.info('gmailconnector::get_credentials called')
+        self.log.info('getting credential store')
         store = self.get_cred_store()
+        self.log.info('getting credentials from store')
         credentials = store.get()
 
+        self.log.info('checking credentials are valid')
         if credentials.access_token_expired:
+            self.log.warning('credentials expired, trying to refresh credentials')
             return credentials.refresh(httplib2.Http())
 
         if not credentials \
