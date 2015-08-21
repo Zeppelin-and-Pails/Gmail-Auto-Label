@@ -28,8 +28,9 @@ class autolabel:
         """
         DIR = os.path.dirname(os.path.realpath(__file__))
         self.conf = yaml.safe_load(open("{}/autolabel.cfg".format(DIR)))
-        self.log = logit.logit(self.conf)
-        self.log.info('autolabel initialised')
+        log = logit.logit(self.conf)
+        log.info('autolabel initialised')
+        self.log = log
 
     def get_gmailcon(self):
         """ Intialise a new gmail connector
