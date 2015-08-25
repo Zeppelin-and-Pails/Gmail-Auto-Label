@@ -65,6 +65,7 @@ class gmailconnector:
         flow = client.flow_from_clientsecrets(self.conf['CS_FILE'],
                                               ' '.join(self.get_scopes()),
                                               callback_path)
+        flow.params['access_type'] = 'offline'
         url = flow.step1_get_authorize_url(callback_path)
         return url
 
@@ -95,7 +96,7 @@ class gmailconnector:
         self.log.info('checking credentials are valid')
         if credentials.access_token_expired:
             self.log.warning('credentials expired, trying to refresh credentials')
-            return credentials.refresh(httplib2.Http())
+            credentials.refresh(httplib2.Http())
 
         if not credentials \
            or credentials.invalid \
