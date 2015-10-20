@@ -14,16 +14,23 @@ REST interface for Autolabeler, starts up a autolabeler via webhooks
 import os, yaml
 import time, sys
 import autolabel
-from daemon import Daemon
+from daemon import daemon
 from flask import Flask, request, jsonify, redirect
 
-class AutolabelDaemon(Daemon):
+class AutolabelDaemon(daemon.Daemon):
+    def __init__(self, pidfile='/tmp/gal.pid'):
+        super(AutolabelDaemon, self).__init__(pidfile)
+
+    def run(self):
+        fa = FlaskApp()
+        fa.run()
+
+class FlaskApp:
     DIR = os.path.dirname(os.path.realpath(__file__))
     conf = yaml.safe_load(open("{}/flask.cfg".format(DIR)))
     app = Flask(__name__)
 
     gal = autolabel.autolabel()
-
     def run(self):
         @self.app.route(self.conf['RUNCALL'])
         def labeler():
@@ -54,6 +61,7 @@ class AutolabelDaemon(Daemon):
 
 if __name__ == "__main__":
     daemon = AutolabelDaemon()
+
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()

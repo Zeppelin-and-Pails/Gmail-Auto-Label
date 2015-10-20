@@ -3,16 +3,13 @@
 import sys, os, time, atexit
 from signal import SIGTERM
 
-class Daemon:
+class Daemon(object):
     """
     A generic daemon class.
 
     Usage: subclass the Daemon class and override the run() method
     """
-    def __init__(self, pidfile='/tmp/gal.pid', stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
-        self.stdin = stdin
-        self.stdout = stdout
-        self.stderr = stderr
+    def __init__(self, pidfile='/tmp/gal.pid'):
         self.pidfile = pidfile
 
     def daemonize(self):
@@ -45,20 +42,13 @@ class Daemon:
             sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
-        # redirect standard file descriptors
-        sys.stdout.flush()
-        sys.stderr.flush()
-        si = file(self.stdin, 'r')
-        so = file(self.stdout, 'a+')
-        se = file(self.stderr, 'a+', 0)
-        os.dup2(si.fileno(), sys.stdin.fileno())
-        os.dup2(so.fileno(), sys.stdout.fileno())
-        os.dup2(se.fileno(), sys.stderr.fileno())
-
         # write pidfile
         atexit.register(self.delpid)
         pid = str(os.getpid())
         file(self.pidfile,'w+').write("%s\n" % pid)
+
+        message = "starting process with pid %s\n" % pid
+        sys.stdout.write(message)
 
     def delpid(self):
         os.remove(self.pidfile)
@@ -76,7 +66,7 @@ class Daemon:
             pid = None
 
         if pid:
-            message = "pidfile %s already exist. Daemon already running?\n"
+            message = "pidfile %s already exist. Daemon should already be running.\n"
             sys.stderr.write(message % self.pidfile)
             sys.exit(1)
 
