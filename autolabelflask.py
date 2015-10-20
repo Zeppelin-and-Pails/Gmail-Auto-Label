@@ -17,27 +17,27 @@ import autolabel
 from daemon import Daemon
 from flask import Flask, request, jsonify, redirect
 
-class MyDaemon(Daemon):
+class autolabelDaemon(Daemon):
+    DIR = os.path.dirname(os.path.realpath(__file__))
+    conf = yaml.safe_load(open("{}/flask.cfg".format(DIR)))
+    app = Flask(__name__)
+
+    gal = autolabel.autolabel()
+
     def run(self):
-        DIR = os.path.dirname(os.path.realpath(__file__))
-        conf = yaml.safe_load(open("{}/flask.cfg".format(DIR)))
-        app = Flask(__name__)
-
-        gal = autolabel.autolabel()
-
-        @app.route(conf['RUNCALL'])
+        @self.app.route(self.conf['RUNCALL'])
         def labeler():
             """ Run the autolabeler, and return the results
             :return: output of the labeler run
             """
-            return gal.run()
+            return self.gal.run()
 
-        @app.route(conf['AUTHCALL'])
+        @self.app.route(self.conf['AUTHCALL'])
         def oauth2callback():
             """ Authenticate the app with the GMail API
             :return: results of the authentication run
             """
-            con = gal.get_gmailcon()
+            con = self.gal.get_gmailcon()
             if 'code' not in request.args:
                 auth_uri = con.get_auth_url()
                 del con
@@ -50,10 +50,10 @@ class MyDaemon(Daemon):
                     return 'Get credentials [Failed]'
                 return 'Get credentials {}'.format(result)
 
-        app.run(host=conf['HOST'], port=conf['PORT'])
+        self.app.run(host=self.conf['HOST'], port=self.conf['PORT'])
 
 if __name__ == "__main__":
-    daemon = MyDaemon('/tmp/gal.pid')
+    daemon = autolabelDaemon('/tmp/gal.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()
