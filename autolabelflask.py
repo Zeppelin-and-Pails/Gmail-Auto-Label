@@ -17,7 +17,7 @@ import autolabel
 from daemon import Daemon
 from flask import Flask, request, jsonify, redirect
 
-class autolabelDaemon(Daemon):
+class AutolabelDaemon(Daemon):
     DIR = os.path.dirname(os.path.realpath(__file__))
     conf = yaml.safe_load(open("{}/flask.cfg".format(DIR)))
     app = Flask(__name__)
@@ -53,7 +53,7 @@ class autolabelDaemon(Daemon):
         self.app.run(host=self.conf['HOST'], port=self.conf['PORT'])
 
 if __name__ == "__main__":
-    daemon = autolabelDaemon('/tmp/gal.pid')
+    daemon = AutolabelDaemon()
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()
