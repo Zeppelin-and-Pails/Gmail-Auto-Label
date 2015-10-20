@@ -66,6 +66,7 @@ class gmailconnector:
                                               ' '.join(self.get_scopes()),
                                               callback_path)
         flow.params['access_type'] = 'offline'
+        flow.params['approval_prompt'] = 'force'
         url = flow.step1_get_authorize_url(callback_path)
         return url
 
@@ -96,7 +97,10 @@ class gmailconnector:
         self.log.info('checking credentials are valid')
         if credentials.access_token_expired:
             self.log.warning('credentials expired, trying to refresh credentials')
-            credentials.refresh(httplib2.Http())
+            try:
+                return credentials.authorize(httplib2.Http())
+            except:
+                pass
 
         if not credentials \
            or credentials.invalid \
