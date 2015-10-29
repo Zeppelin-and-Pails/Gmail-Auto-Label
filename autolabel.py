@@ -31,6 +31,7 @@ class autolabel:
         log = logit.logit(self.conf)
         log.info('autolabel initialised')
         self.log = log
+        self.con = self.get_gmailcon()
 
     def get_gmailcon(self):
         """ Intialise a new gmail connector
@@ -38,6 +39,20 @@ class autolabel:
         """
         self.log.info('autolabel::get_gmailcon called')
         return gmailconnector.gmailconnector(self.log)
+
+    def get_auth_url(self):
+        """ Intialise a new gmail connector
+        :return auth_url: the url for google auth
+        """
+        self.log.info('autolabel::get_auth_url called')
+        return self.con.get_auth_url()
+
+    def get_credentials(self, auth_code):
+        """ Intialise a new gmail connector
+        :return gmailconnector: the newly initialised gmail connector
+        """
+        self.log.info('autolabel::set_credentials called')
+        return self.con.get_credentials(auth_code)
 
     def run(self):
         """ Run through the autolabeling process
@@ -48,11 +63,10 @@ class autolabel:
         :return: the results of the run
         """
         self.log.info('autolabel::run called')
-        con = self.get_gmailcon()
 
         labels = {}
 
-        for label in con.get_labels():
+        for label in self.con.get_labels():
             labels[label['name']] = label['id']
 
         if not labels:
@@ -61,7 +75,7 @@ class autolabel:
         else:
             self.log.info('{0} labels found.'.format(len(labels)))
 
-            messages = con.get_inbox_messages()
+            messages = self.con.get_inbox_messages()
 
             if not messages:
                 resp = 'No messages found.'
@@ -71,7 +85,7 @@ class autolabel:
                 bad = 0
                 for message in messages:
                     try:
-                        address = con.get_address(message['id'])
+                        address = self.con.get_address(message['id'])
                         radd = re.search(r'(?<=<)(.+)(?=>)', address)
                         if radd:
                             address = radd.group(0)
@@ -80,13 +94,13 @@ class autolabel:
                         if label not in labels:
                             print label
                             try:
-                                new_label = con.add_label(label)
+                                new_label = self.con.add_label(label)
                                 labels[new_label['name']] = new_label['id']
                             except:
                                 bad += 1
                                 pass
 
-                        con.move_msg_to_label(message['id'], labels[label])
+                        self.con.move_msg_to_label(message['id'], labels[label])
                         msg += 1
                     except:
                         bad += 1
