@@ -44,18 +44,16 @@ class FlaskApp:
             """ Authenticate the app with the GMail API
             :return: results of the authentication run
             """
-            con = self.gal.get_gmailcon()
             if 'code' not in request.args:
-                auth_uri = con.get_auth_url()
-                del con
+                auth_uri = self.gal.get_auth_url()
                 return redirect(auth_uri)
             else:
                 auth_code = request.args.get('code')
                 try:
-                    result = con.set_credentials(auth_code)
+                    self.gal.get_credentials(auth_code)
                 except:
                     return 'Get credentials [Failed]'
-                return 'Get credentials {}'.format(result)
+                return self.gal.run()
 
         self.app.run(host=self.conf['HOST'], port=self.conf['PORT'])
 
