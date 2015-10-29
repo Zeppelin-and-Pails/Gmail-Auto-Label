@@ -62,25 +62,10 @@ class gmailconnector:
         """
         self.log.info('gmailconnector::get_auth_url called')
         callback_path = '{}/oauth2callback'.format(self.conf['AUTH_URL'])
-        flow = client.flow_from_clientsecrets(self.conf['CS_FILE'],
-                                              ' '.join(self.get_scopes()),
-                                              callback_path)
+        flow = client.flow_from_clientsecrets(self.conf['CS_FILE'], ' '.join(self.get_scopes()))
         flow.params['access_type'] = 'offline'
         flow.params['approval_prompt'] = 'force'
-        url = flow.step1_get_authorize_url(callback_path)
-        return url
-
-    def get_cred_store(self):
-        """ Get the credentials store from file
-        :return oauth2client.file.Storage:
-                    a new instance of Storage for access the stored credentials
-        """
-        self.log.info('gmailconnector::get_cred_store called')
-        credential_dir = os.path.join(self.conf['CRED_DIR'])
-        if not os.path.exists(credential_dir):
-            os.makedirs(credential_dir)
-        credential_path = os.path.join(credential_dir, 'gmail-auto-label.json')
-        return oauth2client.file.Storage(credential_path)
+        return flow.step1_get_authorize_url(callback_path)
 
     def get_credentials(self, reauth):
         """ Get a credentials object initialised from file
