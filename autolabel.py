@@ -47,12 +47,12 @@ class autolabel:
         self.log.info('autolabel::get_auth_url called')
         return self.con.get_auth_url()
 
-    def get_credentials(self, auth_code):
+    def set_credentials(self, auth_code):
         """ Intialise a new gmail connector
         :return gmailconnector: the newly initialised gmail connector
         """
         self.log.info('autolabel::set_credentials called')
-        return self.con.get_credentials(auth_code)
+        return self.con.set_credentials(auth_code)
 
     def run(self):
         """ Run through the autolabeling process
@@ -63,6 +63,11 @@ class autolabel:
         :return: the results of the run
         """
         self.log.info('autolabel::run called')
+        self.log.info('attempting to get the credentials from store')
+        try:
+            self.con.get_credentials(False)
+        except:
+            return -99
 
         labels = {}
 

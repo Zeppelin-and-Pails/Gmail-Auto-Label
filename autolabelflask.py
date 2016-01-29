@@ -37,7 +37,12 @@ class FlaskApp:
             """ Run the autolabeler, and return the results
             :return: output of the labeler run
             """
-            return self.gal.run()
+            resp = self.gal.run()
+            if resp == -99:
+                auth_uri = self.gal.get_auth_url()
+                return redirect(auth_uri)
+            else:
+                return self.gal.run()
 
         @self.app.route(self.conf['AUTHCALL'])
         def oauth2callback():
@@ -50,7 +55,7 @@ class FlaskApp:
             else:
                 auth_code = request.args.get('code')
                 try:
-                    self.gal.get_credentials(auth_code)
+                    self.gal.set_credentials(auth_code)
                 except:
                     return 'Get credentials [Failed]'
                 return self.gal.run()

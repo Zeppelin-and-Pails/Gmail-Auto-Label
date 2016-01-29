@@ -17,6 +17,7 @@ import emailer
 # google apis
 import oauth2client
 from oauth2client import client, tools
+from oauth2client.file import Storage
 from apiclient import discovery, errors
 
 
@@ -66,6 +67,12 @@ class gmailconnector:
         flow.params['access_type'] = 'offline'
         flow.params['approval_prompt'] = 'force'
         return flow.step1_get_authorize_url(callback_path)
+
+    def get_cred_store(self):
+        """ Get the credentials store for the o2auth details
+        :return: the credentials store
+        """
+        return Storage(self.conf['CRED_DIR'] + '/' + self.conf['APP_NAME'])
 
     def get_credentials(self, reauth):
         """ Get a credentials object initialised from file
